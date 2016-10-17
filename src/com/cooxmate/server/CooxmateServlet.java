@@ -27,8 +27,17 @@ public class CooxmateServlet extends HttpServlet {
 	public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
 		String path = req.getRequestURI();
+		System.out.println("path:	" + path);
 		
-		System.out.println("path" + path);
+		switch (path) {
+		case "/demo":
+			DBManager.createDemoData();
+		case "/init":
+			DBManager.fetchRecipes(0, 1);
+		}
+		
+		
+		
 		
 		PrintWriter out = resp.getWriter();
 		resp.setContentType("text/plain");
