@@ -62,38 +62,41 @@ public class DBManager {
 		DBManager.createTablesIfNeeded(url);
 	}
 
-	public static void fetchRecipes(String from, String to) {
-		
-		
+	public static String fetchRecipes(String from, String to) {
 		String url = DBManager.fetchDatabaseURL();
-
+		String resultString = "{ \"recipes\": [";
+		
 		try {
 			Connection connection = DriverManager.getConnection(url);
 
 			// Execute SQL query
 			Statement stmt = connection.createStatement();
 			String sql;
-			sql = "SELECT id, first, last, age FROM Employees";
-			
+			sql = "SELECT * FROM recipe ORDER BY recipe_id LIMIT " + to;
 
 			ResultSet rs = stmt.executeQuery(sql);				
 			// Extract data from result set
-			//        while(rs.next()){
-			//           //Retrieve by column name
-			//           int id  = rs.getInt("id");
-			//           int age = rs.getInt("age");
-			//           String first = rs.getString("first");
-			//           String last = rs.getString("last");
-			//
-			//           //Display values
-			//           out.println("ID: " + id + "<br>");
-			//           out.println(", Age: " + age + "<br>");
-			//           out.println(", First: " + first + "<br>");
-			//           out.println(", Last: " + last + "<br>");
-			//        }
+			
+			Integer counter = 0;
+			while(rs.next()){
+
+				if (counter >= Integer.parseInt(from)) {
+
+					//Retrieve by column name
+					int id  = rs.getInt("recipe_id");				
+					String line = "{\"recipe_id\":" + id + "}";
+					resultString += line;
+										
+					if ((counter + 1) != Integer.parseInt(to) && rs.isLast() == false) {
+						resultString += ",";					
+					}
+				}			
+				counter ++;
+			}
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return resultString + "]}";
 	}
 	
 	/**
