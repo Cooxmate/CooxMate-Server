@@ -7,4 +7,6 @@ public class APIConstantInitResponse {
 	public static String From = "from";
 	public static String To = "to";
 
+	public static String RecipeId = "recipeId";
+
 }

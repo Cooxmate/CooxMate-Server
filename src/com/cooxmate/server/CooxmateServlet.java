@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.*;
+
 import com.cooxmate.configuration.Configuration;
 import com.cooxmate.dbmanager.*;
 import com.cooxmate.configuration.APIConstantInitResponse;
@@ -52,9 +54,18 @@ public class CooxmateServlet extends HttpServlet {
 		case "/init":
 			
 			if (req.getParameter(APIConstantInitResponse.From) != null && req.getParameter(APIConstantInitResponse.To) != null) {
-				String resultString = DBManager.fetchRecipes(req.getParameter(APIConstantInitResponse.From).toString(), req.getParameter(APIConstantInitResponse.To).toString());
+				JSONArray resultString = DBManager.fetchRecipes(req.getParameter(APIConstantInitResponse.From).toString(), req.getParameter(APIConstantInitResponse.To).toString());
 				resp.setContentType(APIConstantInitResponse.JSONHeader);
 
+				out.print(resultString);
+				out.flush();
+			}						
+			break;
+		case "/recipe":
+			
+			if (req.getParameter(APIConstantInitResponse.RecipeId) != null) {
+				JSONArray resultString = DBManager.fetchSteps(req.getParameter(APIConstantInitResponse.RecipeId).toString());
+				resp.setContentType(APIConstantInitResponse.JSONHeader);
 				out.print(resultString);
 				out.flush();
 			}						

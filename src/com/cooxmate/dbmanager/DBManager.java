@@ -7,6 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;  
+
 import com.cooxmate.configuration.*;
 import com.cooxmate.configuration.Configuration.Enviroment;
 
@@ -46,7 +50,9 @@ public class DBManager {
 	
 	private static final String INSERT_DEMO_RECIPE				= "INSERT INTO cooxmate.recipe (name, publish, timestamp, type, icon_url) VALUES (\"STEAK\",TRUE,now(),\"NORMAL\", \"icon.png\")";
 	private static final String INSERT_DEMO_FIRST_STEP			= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (1,\"salt steak etc....\",0,false, \"typeA\")";
-	private static final String INSERT_DEMO_SECOND_STEP			= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (1,\"grill steak etc....\",0,true, \"typeA\")";
+	private static final String INSERT_DEMO_SECOND_STEP			= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (1,\"grill steak etc....\",1,true, \"typeA\")";
+	private static final String INSERT_SECOND_DEMO_FIRST_STEP	= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (2,\"salt steak etc....\",0,false, \"typeA\")";
+	private static final String INSERT_SECOND_DEMO_SECOND_STEP	= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (2,\"grill steak etc....\",1,true, \"typeA\")";
 	private static final String INSERT_DEMO_VARIATION			= "INSERT INTO cooxmate.variation (step_id, time, fan_oven, regular_oven, hotplate, level) VALUES (2, \"10min\", false ,false, true, \"medium\")";
 	private static final String INSERT_DEMO_VARIATION_SECOND	= "INSERT INTO cooxmate.variation (step_id, time, fan_oven, regular_oven, hotplate, level) VALUES (4, \"10min\", false ,false, true, \"medium\")";
 	private static final String INSERT_DEMO_DEPENDENCY			= "INSERT INTO cooxmate.dependency (step_id, depended_step_id) VALUES (2, 1)";
@@ -62,9 +68,9 @@ public class DBManager {
 		DBManager.createTablesIfNeeded(url);
 	}
 
-	public static String fetchRecipes(String from, String to) {
+	public static JSONArray fetchRecipes(String from, String to) {
 		String url = DBManager.fetchDatabaseURL();
-		String resultString = "{ \"recipes\": [";
+		JSONArray jsonArray = new JSONArray();
 		
 		try {
 			Connection connection = DriverManager.getConnection(url);
@@ -76,27 +82,62 @@ public class DBManager {
 
 			ResultSet rs = stmt.executeQuery(sql);				
 			// Extract data from result set
-			
-			Integer counter = 0;
-			while(rs.next()){
 
+			Integer counter = 1;
+
+
+			while (rs.next()) {		        
 				if (counter >= Integer.parseInt(from)) {
-
-					//Retrieve by column name
-					int id  = rs.getInt("recipe_id");				
-					String line = "{\"recipe_id\":" + id + "}";
-					resultString += line;
-										
-					if ((counter + 1) != Integer.parseInt(to) && rs.isLast() == false) {
-						resultString += ",";					
+					int total_rows = rs.getMetaData().getColumnCount();
+					JSONObject obj = new JSONObject();
+					for (int i = 0; i < total_rows; i++) {
+						obj.put(rs.getMetaData().getColumnLabel(i + 1).toLowerCase(), rs.getObject(i + 1));
 					}
-				}			
+					jsonArray.put(obj);
+				}
 				counter ++;
 			}
 		}catch (SQLException e) {
 			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return resultString + "]}";
+		return jsonArray;
+	}
+	
+	public static JSONArray fetchSteps(String recipeId) {
+		
+		String url = DBManager.fetchDatabaseURL();
+		JSONArray jsonArray = new JSONArray();
+		
+		try {
+			Connection connection = DriverManager.getConnection(url);
+
+			// Execute SQL query
+			Statement stmt = connection.createStatement();
+			String sql;
+			sql = "SELECT * FROM step WHERE recipe_id = " + recipeId + " ORDER BY position ASC";
+
+			ResultSet rs = stmt.executeQuery(sql);				
+			// Extract data from result set
+
+
+			while (rs.next()) {		        
+				int total_rows = rs.getMetaData().getColumnCount();
+				JSONObject obj = new JSONObject();
+				for (int i = 0; i < total_rows; i++) {
+					obj.put(rs.getMetaData().getColumnLabel(i + 1).toLowerCase(), rs.getObject(i + 1));
+				}
+				jsonArray.put(obj);
+			}
+		}catch (SQLException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return jsonArray;
 	}
 	
 	/**
@@ -127,8 +168,8 @@ public class DBManager {
 			station.execute(INSERT_DEMO_DEPENDENCY);
 
 			station.execute(INSERT_DEMO_RECIPE);
-			station.execute(INSERT_DEMO_FIRST_STEP);
-			station.execute(INSERT_DEMO_SECOND_STEP);
+			station.execute(INSERT_SECOND_DEMO_FIRST_STEP);
+			station.execute(INSERT_SECOND_DEMO_SECOND_STEP);
 			station.execute(INSERT_DEMO_VARIATION_SECOND);			
 			station.execute(INSERT_DEMO_DEPENDENCY_SECOND);
 			connection.close();
