@@ -128,6 +128,41 @@ public class DBManager {
 				JSONObject obj = new JSONObject();
 				for (int i = 0; i < total_rows; i++) {
 					obj.put(rs.getMetaData().getColumnLabel(i + 1).toLowerCase(), rs.getObject(i + 1));
+
+					if (rs.getMetaData().getColumnLabel(i + 1).equals("step_id") == true) {					   
+						sql = "SELECT depended_step_id FROM dependency WHERE step_id = " + rs.getObject(i + 1);
+						Statement stepStmt = connection.createStatement();
+						ResultSet stepRs = stepStmt.executeQuery(sql);
+
+						while (stepRs.next()) {
+							int total_step_rows = stepRs.getMetaData().getColumnCount();
+							JSONArray parameterArray = new JSONArray();
+
+							for (int y = 0; y < total_step_rows; y++) {
+								parameterArray.put(stepRs.getObject(y + 1));
+							}
+							obj.put("dependencyArray", parameterArray);
+						}
+						
+						sql = "SELECT * FROM variation WHERE step_id = " + rs.getObject(i + 1);
+						Statement variationStmt = connection.createStatement();
+						ResultSet variationRs = variationStmt.executeQuery(sql);
+						
+						JSONArray parameterArray = new JSONArray();
+
+						while (variationRs.next()) {
+							
+							JSONObject variationObj = new JSONObject();
+
+							int total_variation_rows = variationRs.getMetaData().getColumnCount();
+
+							for (int y = 0; y < total_variation_rows; y++) {
+								variationObj.put(variationRs.getMetaData().getColumnLabel(y + 1).toLowerCase(), variationRs.getObject(y + 1));
+							}						
+							parameterArray.put(variationObj);
+						}
+						obj.put("variations", parameterArray);						
+					}
 				}
 				jsonArray.put(obj);
 			}
