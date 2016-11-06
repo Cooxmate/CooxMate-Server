@@ -54,10 +54,9 @@ public class CooxmateServlet extends HttpServlet {
 		case "/init":
 			
 			if (req.getParameter(APIConstantInitResponse.From) != null && req.getParameter(APIConstantInitResponse.To) != null) {
-				JSONArray resultString = DBManager.fetchRecipes(req.getParameter(APIConstantInitResponse.From).toString(), req.getParameter(APIConstantInitResponse.To).toString());
+				JSONObject result = DBManager.fetchRecipes(req.getParameter(APIConstantInitResponse.From).toString(), req.getParameter(APIConstantInitResponse.To).toString());
 				resp.setContentType(APIConstantInitResponse.JSONHeader);
-
-				out.print(resultString);
+				out.print(result);
 				out.flush();
 			}						
 			break;

@@ -19,7 +19,7 @@ public class DBManager {
 	// Constants for creating DB
 	private static final String CREATE_TABLE_RECIPE 	= "CREATE TABLE IF NOT EXISTS recipe ( recipe_id INT NOT NULL " + 
 													"AUTO_INCREMENT, name VARCHAR(46) NOT NULL, publish BOOLEAN, timestamp DATETIME NOT NULL, " + 
-													"type VARCHAR(46), icon_url VARCHAR(46), icon BLOB, PRIMARY KEY (recipe_id) )";
+													"type VARCHAR(46), title VARCHAR(46), description VARCHAR(46), time_preparation VARCHAR(10), icon_url VARCHAR(46), PRIMARY KEY (recipe_id) )";
 
 	private static final String CREATE_TABLE_STEP		= "CREATE TABLE IF NOT EXISTS step ( step_id INT NOT NULL AUTO_INCREMENT," +
 													"recipe_id INT NOT NULL, description VARCHAR(248), position INT, " +
@@ -48,7 +48,7 @@ public class DBManager {
 
 	// Constants for demo data
 	
-	private static final String INSERT_DEMO_RECIPE				= "INSERT INTO cooxmate.recipe (name, publish, timestamp, type, icon_url) VALUES (\"STEAK\",TRUE,now(),\"NORMAL\", \"icon.png\")";
+	private static final String INSERT_DEMO_RECIPE				= "INSERT INTO cooxmate.recipe (name, publish, timestamp, title, description, time_preparation, type, icon_url) VALUES (\"STEAK\",TRUE,now(),\"Haenchen und Spinat\",\"Lorem ipsum....\",30,\"Orientalisch\", \"icon.png\")";
 	private static final String INSERT_DEMO_FIRST_STEP			= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (1,\"salt steak etc....\",0,false, \"typeA\")";
 	private static final String INSERT_DEMO_SECOND_STEP			= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (1,\"grill steak etc....\",1,true, \"typeA\")";
 	private static final String INSERT_SECOND_DEMO_FIRST_STEP	= "INSERT INTO cooxmate.step (recipe_id, description, position, timer, type) VALUES (2,\"salt steak etc....\",0,false, \"typeA\")";
@@ -68,8 +68,9 @@ public class DBManager {
 		DBManager.createTablesIfNeeded(url);
 	}
 
-	public static JSONArray fetchRecipes(String from, String to) {
+	public static JSONObject fetchRecipes(String from, String to) {
 		String url = DBManager.fetchDatabaseURL();
+		JSONObject jsonObject = new JSONObject();
 		JSONArray jsonArray = new JSONArray();
 		
 		try {
@@ -103,7 +104,14 @@ public class DBManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return jsonArray;
+		
+		try {
+			jsonObject.put(APIConstantInitResponse.Results, jsonArray);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return jsonObject;
 	}
 	
 	public static JSONArray fetchSteps(String recipeId) {
